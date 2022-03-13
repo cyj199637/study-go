@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"study-go/theory"
+)
 
 func main() {
 	const greeting string = "Hello World!!!"
@@ -11,4 +14,14 @@ func main() {
 
 	greeting3 := "Hello World!!!"
 	fmt.Println(greeting3)
+
+	word, _ := theory.LongestStringAndLen("candy", "calendar", "cheer", "car", "custom")
+	fmt.Println(word)
+
+	theory.WithPointer()
+
+	theory.WithArray()
+	theory.WithSlice()
+
+	theory.WithStruct()
 }
