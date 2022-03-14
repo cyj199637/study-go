@@ -1,6 +1,9 @@
 package chapter02
 
-import "fmt"
+import (
+	"fmt"
+	"study-go/common"
+)
 
 type Account struct {
 	owner   string
@@ -26,7 +29,7 @@ func (a *Account) Deposit(amount int) {
 
 func (a *Account) Withdraw(amount int) error {
 	if a.balance < amount {
-		return ErrNoMoney
+		return common.ErrNoMoney
 	}
 	a.balance -= amount
 	return nil

@@ -5,6 +5,17 @@ import (
 	"strconv"
 )
 
+func Greeting() {
+	const greeting string = "Hello World!!!"
+	fmt.Println(greeting)
+
+	var greeting2 string = "Hello World!!!"
+	fmt.Println(greeting2)
+
+	greeting3 := "Hello World!!!"
+	fmt.Println(greeting3)
+}
+
 func LongestStringAndLen(words ...string) (longest string, length int) {
 	defer fmt.Println("Done")
 	for _, word := range words {
