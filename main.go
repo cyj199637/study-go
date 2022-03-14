@@ -33,4 +33,29 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Println(account)
+
+	dict := chapter02.SampleDict{"first": "Buying KeyCap"}
+	err2 := dict.Add("first", "Wake up Early")
+	if err2 != nil {
+		fmt.Println("Add error -> ", err2)
+	}
+	dict.Add("second", "Wake up Early")
+	todo, _ := dict.Search("second")
+	fmt.Println(todo)
+
+	err3 := dict.Update("third", "Drink BubbleTea")
+	if err3 != nil {
+		fmt.Println("Update error -> ", err3)
+	}
+	dict.Update("second", "Drink BubbleTea")
+	todo2, _ := dict.Search("second")
+	fmt.Println(todo2)
+
+	err4 := dict.Delete("third")
+	if err4 != nil {
+		fmt.Println("Delete error -> ", err4)
+	}
+	dict.Delete("second")
+	_, err5 := dict.Search("second")
+	fmt.Println("Delete Success -> ", err5)
 }
