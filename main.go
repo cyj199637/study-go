@@ -1,7 +1,7 @@
 package main
 
-import "study-go/chapter03"
+import "study-go/chapter04"
 
 func main() {
-	chapter03.UrlChecker()
+	chapter04.Scrapper()
 }
