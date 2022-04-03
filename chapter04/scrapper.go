@@ -1,10 +1,11 @@
 package chapter04
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"log"
 	"net/http"
 	"strconv"
+	"study-go/common"
 )
 
 var baseUrl string = "https://kr.indeed.com/jobs?q=java&limit=50"
@@ -25,22 +26,31 @@ func Scrapper() {
 	var jobs []Job
 	totalCount := GetTotalPagesCount()
 
+	c := make(chan []Job)
 	for i := 0; i < totalCount; i++ {
-		extractedJobs := GetPage(i)
+		go GetPage(i, c)
+	}
+
+	for i := 0; i < totalCount; i++ {
+		extractedJobs := <-c
 		jobs = append(jobs, extractedJobs...)
 	}
+
+	writeCsv(jobs)
+	fmt.Println("Done, extracted ", len(jobs))
 }
 
+// GetTotalPagesCount : 전체 페이지 수를 가져오는 함수
 func GetTotalPagesCount() int {
 	totalCount := 0
 	res, err := http.Get(baseUrl)
-	checkErr(err)
-	checkStatusCode(res)
+	common.CheckErr(err)
+	common.CheckStatusCode(res)
 
 	defer res.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
-	checkErr(err)
+	common.CheckErr(err)
 
 	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
 		totalCount = s.Find("a").Length()
@@ -48,49 +58,44 @@ func GetTotalPagesCount() int {
 	return totalCount
 }
 
-func GetPage(page int) []Job {
+// GetPage : 지정한 페이지 내에 있는 JD를 다 긁어오는 함수
+func GetPage(page int, outerC chan<- []Job) {
 	var jobs []Job
 	pageUrl := baseUrl + "&start=" + strconv.Itoa(page*50)
 	res, err := http.Get(pageUrl)
-	checkErr(err)
-	checkStatusCode(res)
+	common.CheckErr(err)
+	common.CheckStatusCode(res)
 
 	defer res.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
-	checkErr(err)
+	common.CheckErr(err)
 
-	doc.Find(".tapItem").Each(func(i int, item *goquery.Selection) {
-		job := extractJob(item)
-		jobs = append(jobs, job)
+	c := make(chan Job)
+	items := doc.Find(".tapItem")
+	items.Each(func(i int, item *goquery.Selection) {
+		go extractJob(item, c)
 	})
 
-	return jobs
+	for i := 0; i < items.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+
+	outerC <- jobs
 }
 
-func extractJob(item *goquery.Selection) Job {
+func extractJob(item *goquery.Selection, c chan<- Job) {
 	id, _ := item.Attr("data-jk")
 	title := item.Find(".jobTitle>span").Text()
 	location := item.Find(".companyInfo>.companyLocation").Text()
 	salary := item.Find(".salary-snippet>span").Text()
 	summary := item.Find(".job-snippet").Text()
-	return Job{
+	c <- Job{
 		id:       id,
 		title:    title,
 		location: location,
 		salary:   salary,
 		summary:  summary,
-	}
-}
-
-func checkErr(err error) {
-	if err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func checkStatusCode(res *http.Response) {
-	if res.StatusCode != 200 {
-		log.Fatalln("Request Failed With Status: ", res.Status)
 	}
 }
